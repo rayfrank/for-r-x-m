@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Ray x Mitchyy — Slow Dance 💗</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: radial-gradient(circle at top, #ffe4e6 0, #fecdd3 35%, #4a044e 100%);
+            color: #fff;
+        }
+
+        #c {
+            position: fixed;
+            inset: 0
+        }
+
+        .ui {
+            position: fixed;
+            left: 50%;
+            top: 16px;
+            transform: translateX(-50%);
+            width: min(560px, calc(100% - 22px));
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .card {
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.42);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 18px;
+            padding: 12px 14px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            line-height: 1.2;
+            font-weight: 900
+        }
+
+        h1 span {
+            background: linear-gradient(120deg, #f9a8d4, #fb7185, #facc15);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .hint {
+            margin-top: 6px;
+            font-size: 0.86rem;
+            opacity: 0.92;
+            line-height: 1.35
+        }
+
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 900;
+            font-size: 0.9rem;
+            color: #2a0530;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+        }
+
+        button:active {
+            transform: translateY(1px)
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+        }
+
+        .status {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(24, 4, 38, 0.7);
+            white-space: nowrap;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(560px, calc(100% - 22px));
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .footer .card {
+            text-align: center;
+            font-size: 0.8rem;
+            opacity: 0.92;
+            line-height: 1.35
+        }
+
+        #audio {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="c"></canvas>
+
+    <audio id="audio" src="song.mp3" preload="auto" loop></audio>
+
+    <div class="ui">
+        <div class="card">
+            <h1><span>Ray</span> x <span>Mitchyy</span> — our slow dance 💗</h1>
+            <div class="hint">
+                Tap the button once and let’s slow dance together.<br>
+                <b>Reminder:</b> you’re doing great… and if you ever think no one is proud of you, remember that I am.i
+                cannot wait to meet you and make more memories and do things we never did before
+                <br> thanks for always making me smile and being the best girlfriend ever.
+                <br> I love you more than words can express.
+                <div style="margin-top:6px; opacity:0.9;">Song: Ne-Yo - Sexy Love</div>
+            </div>
+            <div class="controls">
+                <button id="danceBtn">Start our dance 💗</button>
+                <div class="status" id="status">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="card">
+            “Highlight of my year: you.”<br>
+            I love kissing you… and I want more with you. <b>Always.</b><br>
+            <span style="opacity:0.85;">designed by ray</span>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("c");
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
+        camera.position.set(0, 2.2, 8);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        const dir = new THREE.DirectionalLight(0xffb6c1, 1.1);
+        dir.position.set(4, 8, 5);
+        scene.add(dir);
+
+        // floor + ring
+        const floor = new THREE.Mesh(
+            new THREE.CircleGeometry(8, 64),
+            new THREE.MeshStandardMaterial({ color: 0x24012a, roughness: 0.9, metalness: 0.06 })
+        );
+        floor.rotation.x = -Math.PI / 2;
+        scene.add(floor);
+
+        const ring = new THREE.Mesh(
+            new THREE.RingGeometry(2.15, 2.35, 64),
+            new THREE.MeshBasicMaterial({ color: 0xff79c6, side: THREE.DoubleSide, transparent: true, opacity: 0.28 })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = 0.01;
+        scene.add(ring);
+
+        // particles
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 260;
+        const pos = new Float32Array(starCount * 3);
+        for (let i = 0; i < starCount; i++) {
+            pos[i * 3 + 0] = (Math.random() - 0.5) * 18;
+            pos[i * 3 + 1] = Math.random() * 7 + 0.6;
+            pos[i * 3 + 2] = (Math.random() - 0.5) * 18;
+        }
+        starGeo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+        const stars = new THREE.Points(
+            starGeo,
+            new THREE.PointsMaterial({ color: 0xffdde1, size: 0.04, transparent: true, opacity: 0.65 })
+        );
+        scene.add(stars);
+
+        // stick figures
+        function makeStickFigure(color) {
+            const group = new THREE.Group();
+            const mat = new THREE.LineBasicMaterial({ color });
+            const line = (pts) => new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat);
+
+            const headPts = []; const r = 0.28;
+            for (let i = 0; i <= 32; i++) {
+                const a = (i / 32) * Math.PI * 2;
+                headPts.push(new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r + 1.75, 0));
+            }
+            group.add(line(headPts));
+            group.add(line([new THREE.Vector3(0, 1.45, 0), new THREE.Vector3(0, 0.95, 0)]));
+
+            const shoulder = new THREE.Vector3(0, 1.35, 0);
+            const hip = new THREE.Vector3(0, 0.95, 0);
+
+            const leftArm = new THREE.Group(), rightArm = new THREE.Group();
+            const leftLeg = new THREE.Group(), rightLeg = new THREE.Group();
+            const ua = 0.45, la = 0.45;
+
+            leftArm.add(line([new THREE.Vector3(0, 0, 0), new THREE.Vector3(-ua, -0.12, 0)]));
+            leftArm.add(line([new THREE.Vector3(-ua, -0.12, 0), new THREE.Vector3(-ua - la, -0.22, 0)]));
+            leftArm.position.copy(shoulder);
+
+            rightArm.add(line([new THREE.Vector3(0, 0, 0), new THREE.Vector3(ua, -0.12, 0)]));
+            rightArm.add(line([new THREE.Vector3(ua, -0.12, 0), new THREE.Vector3(ua + la, -0.22, 0)]));
+            rightArm.position.copy(shoulder);
+
+            const thigh = 0.55, shin = 0.55;
+            leftLeg.add(line([new THREE.Vector3(0, 0, 0), new THREE.Vector3(-0.18, -thigh, 0)]));
+            leftLeg.add(line([new THREE.Vector3(-0.18, -thigh, 0), new THREE.Vector3(-0.18, -thigh - shin, 0)]));
+            leftLeg.position.copy(hip);
+
+            rightLeg.add(line([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.18, -thigh, 0)]));
+            rightLeg.add(line([new THREE.Vector3(0.18, -thigh, 0), new THREE.Vector3(0.18, -thigh - shin, 0)]));
+            rightLeg.position.copy(hip);
+
+            group.add(leftArm, rightArm, leftLeg, rightLeg);
+            group.userData = { leftArm, rightArm, leftLeg, rightLeg };
+            return group;
+        }
+
+        function makeNameSprite(text, bg = "rgba(0,0,0,0.55)") {
+            const canvas = document.createElement("canvas");
+            canvas.width = 512;
+            canvas.height = 192;
+            const ctx = canvas.getContext("2d");
+
+            const pad = 18;
+            const r = 34;
+            const w = canvas.width - pad * 2;
+            const h = canvas.height - pad * 2;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = bg;
+            ctx.beginPath();
+            ctx.moveTo(pad + r, pad);
+            ctx.arcTo(pad + w, pad, pad + w, pad + h, r);
+            ctx.arcTo(pad + w, pad + h, pad, pad + h, r);
+            ctx.arcTo(pad, pad + h, pad, pad, r);
+            ctx.arcTo(pad, pad, pad + w, pad, r);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.font = "900 84px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "#fff";
+            ctx.shadowColor = "rgba(0,0,0,0.45)";
+            ctx.shadowBlur = 8;
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2 + 4);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }));
+            spr.renderOrder = 10;
+            spr.scale.set(2.4, 0.9, 1);
+            return spr;
+        }
+
+        const ray = makeStickFigure(0xff79c6);
+        const mitchy = makeStickFigure(0x7dd3fc);
+        const rayName = makeNameSprite("Ray", "rgba(255,121,198,0.35)");
+        const mitchyName = makeNameSprite("Mitchyy", "rgba(125,211,252,0.35)");
+
+        // Add names directly to scene so they stick up upright and do not rotate with the bodies.
+        scene.add(rayName);
+        scene.add(mitchyName);
+
+        ray.rotation.y = 0.18;
+        mitchy.rotation.y = -0.18;
+        scene.add(ray, mitchy);
+
+        // holding hands: connect Ray's right hand to Mitchyy's left hand
+        const ARM_U = 0.45, ARM_L = 0.45;
+        const rayHandLocal = new THREE.Vector3(ARM_U + ARM_L, -0.22, 0);
+        const mitchyHandLocal = new THREE.Vector3(-(ARM_U + ARM_L), -0.22, 0);
+        const handHoldGeo = new THREE.BufferGeometry();
+        handHoldGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(6), 3));
+        const handHold = new THREE.Line(
+            handHoldGeo,
+            new THREE.LineBasicMaterial({ color: 0xffe4e6, transparent: true, opacity: 0.9 })
+        );
+        scene.add(handHold);
+        const _handA = new THREE.Vector3();
+        const _handB = new THREE.Vector3();
+        function updateHandHold() {
+            _handA.copy(rayHandLocal);
+            ray.userData.rightArm.localToWorld(_handA);
+            _handB.copy(mitchyHandLocal);
+            mitchy.userData.leftArm.localToWorld(_handB);
+            const arr = handHold.geometry.attributes.position.array;
+            arr[0] = _handA.x; arr[1] = _handA.y; arr[2] = _handA.z;
+            arr[3] = _handB.x; arr[4] = _handB.y; arr[5] = _handB.z;
+            handHold.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // Local Audio Integration
+        let dancing = false;
+        const audioEl = document.getElementById("audio");
+        const statusEl = document.getElementById("status");
+        const btn = document.getElementById("danceBtn");
+
+        statusEl.textContent = "Ready";
+
+        audioEl.addEventListener("playing", () => {
+            dancing = true;
+            statusEl.textContent = "Dancing <3";
+        });
+        audioEl.addEventListener("error", (e) => {
+            statusEl.textContent = "Error loading song.mp3 (Is it in the folder?)";
+        });
+
+        // Try to play
+        btn.addEventListener("click", () => {
+            try {
+                audioEl.play().then(() => {
+                    statusEl.textContent = "Starting music...";
+                    btn.textContent = "We're dancing...";
+                    btn.disabled = true;
+                    btn.style.opacity = "0.85";
+                }).catch(err => {
+                    statusEl.textContent = "Play failed: " + err.message;
+                });
+            } catch (err) {
+                statusEl.textContent = "Click failed, try again!";
+            }
+        });
+
+        // Use fixed synthetic beat energy synced to Ne-Yo Sexy Love (~94 BPM)
+        function getEnergy(t) {
+            const beat = (94 / 60) * t;
+            return 0.4 + 0.3 * (0.5 + 0.5 * Math.sin(beat * Math.PI * 2));
+        }
+
+        function slowDance(t, energy) {
+            const clamp01 = (x) => Math.max(0, Math.min(1, x));
+            const smooth01 = (x) => {
+                x = clamp01(x);
+                return x * x * (3 - 2 * x);
+            };
+            const lerp = (a, b, u) => a + (b - a) * u;
+
+            const inten = 0.35 + 0.55 * energy;
+
+            // variations: cycle every few seconds and cross-fade between styles
+            const segLen = 8.0;
+            const seg = Math.floor(t / segLen);
+            const u = (t / segLen) - seg;
+            const blend = smooth01(u);
+            const numModes = 6;
+            const modeA = seg % numModes;
+            const modeB = (modeA + 1) % numModes;
+
+            const styleFor = (m) => {
+                // Expanded variations: step, spin, orbit, dip, arms
+                switch (m) {
+                    case 0: return { step: 0.15, spin: 0.10, orbit: 0.10, dip: 0.05, arms: 0.1 }; // subtle step
+                    case 1: return { step: 0.55, spin: 0.05, orbit: 0.15, dip: 0.10, arms: 0.4 }; // heavy step
+                    case 2: return { step: 0.22, spin: 0.55, orbit: 0.35, dip: 0.05, arms: 0.2 }; // heavy spin
+                    case 3: return { step: 0.18, spin: 0.08, orbit: 0.12, dip: 0.55, arms: 0.4 }; // dip
+                    case 4: return { step: 0.10, spin: 0.80, orbit: 0.60, dip: 0.20, arms: 0.8 }; // twirl
+                    case 5: return { step: 0.40, spin: 0.20, orbit: 0.10, dip: 0.80, arms: 0.2 }; // deep dip
+                    default: return { step: 0.15, spin: 0.10, orbit: 0.10, dip: 0.05, arms: 0.1 };
+                }
+            };
+
+            const aS = styleFor(modeA);
+            const bS = styleFor(modeB);
+            const step = lerp(aS.step, bS.step, blend);
+            const spin = lerp(aS.spin, bS.spin, blend);
+            const orbit = lerp(aS.orbit, bS.orbit, blend);
+            const dip = lerp(aS.dip, bS.dip, blend);
+            const arms = lerp(aS.arms, bS.arms, blend);
+
+            const sway = Math.sin(t * 1.10);
+            const swayA = sway * 0.18 * inten;
+            const swayB = Math.sin(t * 1.10 + 1.7) * 0.18 * inten;
+
+            const beat = t * 1.55; // loose "beat-ish" driver
+            const pulse = 0.5 + 0.5 * Math.sin(beat * Math.PI * 2);
+
+            const baseClose = 1.05;
+            const closer = baseClose
+                - 0.15 * (0.5 + 0.5 * Math.sin(t * 0.7)) * inten
+                - 0.05 * orbit * inten;
+
+            const togetherX = Math.sin(t * 0.42) * 0.10 * inten;
+            const stepX = Math.sin(t * 2.15) * 0.10 * step * inten;
+            const orbitZ = Math.sin(t * 0.9) * 0.22 * orbit * inten;
+
+            ray.position.x = -closer + togetherX + stepX;
+            mitchy.position.x = closer + togetherX + stepX;
+            ray.position.z = -orbitZ;
+            mitchy.position.z = orbitZ;
+
+            const bounce = Math.abs(Math.sin(t * 1.6)) * 0.03 * inten + pulse * 0.015 * step * inten;
+            ray.position.y = bounce;
+            mitchy.position.y = Math.abs(Math.sin(t * 1.6 + 1.2)) * 0.03 * inten + pulse * 0.015 * step * inten;
+
+            const spinTerm = Math.sin(t * 0.65) * 0.8 * spin * inten;
+            ray.rotation.y = 0.18 + swayA + spinTerm;
+            mitchy.rotation.y = -0.18 + swayB - spinTerm;
+
+            const dipPulse = Math.max(0, Math.sin((t * 0.7 + 0.25) * Math.PI * 2)) * dip * inten;
+            ray.rotation.z = -dipPulse * 0.22;
+            mitchy.rotation.z = dipPulse * 0.22;
+            mitchy.position.y -= dipPulse * 0.08;
+
+            const a = ray.userData, b = mitchy.userData;
+
+            const innerWiggle = Math.sin(t * 1.15) * (0.06 + 0.04 * orbit) * inten;
+            const extraArms = Math.sin(t * 2.4) * 0.15 * arms * inten;
+            a.rightArm.rotation.z = 0.16 - innerWiggle - dipPulse * 0.10 + extraArms;
+            b.leftArm.rotation.z = -0.16 + innerWiggle + dipPulse * 0.10 - extraArms;
+
+            a.leftArm.rotation.z = -0.55 + Math.sin(t * 1.15 + 0.9) * (0.10 + 0.2 * arms) * inten;
+            b.rightArm.rotation.z = 0.55 - Math.sin(t * 1.15 + 0.4) * (0.10 + 0.2 * arms) * inten;
+
+            const legAmp = (0.12 + 0.12 * step + 0.06 * orbit) * inten;
+            a.leftLeg.rotation.x = Math.sin(t * 1.15) * legAmp;
+            a.rightLeg.rotation.x = -Math.sin(t * 1.15) * legAmp;
+            b.leftLeg.rotation.x = -Math.sin(t * 1.15 + 0.5) * legAmp;
+            b.rightLeg.rotation.x = Math.sin(t * 1.15 + 0.5) * legAmp;
+
+            // Constrain names vertically above the bodies
+            rayName.position.set(ray.position.x, ray.position.y + 2.45, ray.position.z);
+            mitchyName.position.set(mitchy.position.x, mitchy.position.y + 2.45, mitchy.position.z);
+        }
+
+        function resize() {
+            const w = innerWidth, h = innerHeight;
+            renderer.setSize(w, h);
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+        }
+        addEventListener("resize", resize);
+        resize();
+
+        const clock = new THREE.Clock();
+        function updateCamera(t) {
+            camera.position.x = Math.sin(t * 0.2) * 0.35;
+            camera.position.y = 2.2 + Math.sin(t * 0.18) * 0.12;
+            camera.position.z = 8.0 + Math.sin(t * 0.16) * 0.08;
+            camera.lookAt(0, 1.2, 0);
+        }
+
+        function tick() {
+            requestAnimationFrame(tick);
+            const t = (dancing && audioEl && isFinite(audioEl.currentTime) && !audioEl.paused)
+                ? audioEl.currentTime
+                : clock.getElapsedTime();
+
+            stars.rotation.y = t * 0.02;
+            ring.material.opacity = 0.22 + 0.10 * Math.sin(t * 0.9);
+
+            if (dancing) {
+                const e = getEnergy(t);
+                slowDance(t, e);
+            }
+
+            scene.updateMatrixWorld(true);
+            updateHandHold();
+
+            updateCamera(t);
+            renderer.render(scene, camera);
+        }
+        tick();
+    </script>
+</body>
+
+</html>
